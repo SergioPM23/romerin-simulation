@@ -332,7 +332,7 @@ function sysCall_actuation()
         elseif currentPhase == "MOVIMIENTO" and math.abs(sim.getObjectPose(tips[leg], romerinPathRef)[2] - targetPose[2]) < movementThreshold / 10 then
             currentPhase = "BAJADA"
             movementCompleted = true
-        elseif currentPhase == "BAJADA" and math.abs(sim.getObjectPose(tips[leg], romerinPathRef)[3] - targetPose[3]) < 0.003 then
+        elseif currentPhase == "BAJADA" and math.abs(sim.getObjectPose(tips[leg], romerinPathRef)[3] - targetPose[3]) < 0.0035 then
             -- Mover el cuerpo de forma progresiva antes de setRest()
             local bodyPose = sim.getObjectPose(body, romerinPathRef)
             bodyPose[2] = bodyPose[2] + movementIncrement * 0.5 -- Coeficiente de 0.5 para suavizar el movimiento
