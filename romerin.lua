@@ -6,6 +6,15 @@ body = sim.getObject(string.format('..'))
 romerinPathRef = sim.getObject(string.format('../RomerinPathRef'))
 bodyMass = sim.getObjectFloatParam(body, sim.shapefloatparam_mass)
 
+linkCam = sim.getObject(string.format('../link_cam_pure'))
+cam = sim.getObject(string.format('../cam_pure'))
+linkCamMass = 0.018
+camMass = 0.120
+
+-- Variables para el manejo de la camara frontal
+frontCam = nil
+frontView = nil
+
 -- Estructuras para manejar articulaciones y enlaces
 links = {}
 joints = {}
@@ -69,6 +78,15 @@ function calculateCOM()
     for j = 1, 3 do
         totalCOM[j] = bodyCOM[j] * bodyMass
     end
+    
+    -- Agregar contribuci?n de la c?mara (link_cam y cam)
+    local posLinkCam = sim.getObjectPosition(linkCam, romerinPathRef)
+    local posCam = sim.getObjectPosition(cam, romerinPathRef)
+    
+    for j = 1, 3 do
+        totalCOM[j] = totalCOM[j] + posLinkCam[j] * linkCamMass + posCam[j] * camMass
+    end
+    totalMass = totalMass + linkCamMass + camMass
     
     -- Agregar contribucion de patas
     for l = 1, 4 do
@@ -277,6 +295,11 @@ function sysCall_init()
     COM0 = sim.getObject(string.format('../COM_0'))
     -- Poisicion incial del COM
     COM0_pos = calculateCOM()
+    
+    -- Preparar una ventana flotante para visualizar lo captado por la camara frontal
+    frontCam = sim.getObject(string.format('../frontCamera'))
+    frontView = sim.floatingViewAdd(0.85,0.85,0.3,0.3,1)
+    sim.adjustView(frontView,frontCam,0,"Front Camera")
 end
         
 function sysCall_actuation()
@@ -362,7 +385,8 @@ function sysCall_sensing()
     local f_corrZ = -correctionFactor * deltaZ
 
     -- Masa total del cuerpo + una pata (constante)
-    local totalMass = bodyMass + legMass
+    local cameraMass = linkCamMass + camMass
+    local totalMass = bodyMass + legMass + cameraMass
     local forceFactor = 1
 
     -- Fuerza para compensar el peso (cuerpo central + pata en movimiento)
@@ -462,4 +486,14 @@ function sysCall_cleanup()
     -- Posicionar RomerinPathRef respecto al body
     local bodyPose = sim.getObjectPosition(body, sim.handle_world)
     sim.setObjectPosition(romerinPathRef, {bodyPose[1], bodyPose[2], 0}, sim.handle_world)
+    
+    -- Sincronizar posicion de frontCamera con cam_pure al detener la simulacion
+    local camPosition = sim.getObjectPosition(cam, sim.handle_world)
+    sim.setObjectPosition(frontCam, camPosition, sim.handle_world)
+
+    -- Cerrar la ventana flotante de la camara si esta abierta
+    if frontView then
+        sim.floatingViewRemove(frontView)
+        frontView = nil
+    end
 end
