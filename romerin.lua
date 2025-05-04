@@ -54,11 +54,11 @@ movementThreshold = 0.05 -- Umbral de distancia para cambio de fase
 
 -- Variables para identificadores del COM
 COM = nil
-COM0 = nil
+COM_i = nil
 -- Variable de posicion del COM respecto a PathRef
 COM_pos = {}
 -- Variable de posicion inicial del COM respecto al PathRef
-COM0_pos = {}
+COM_i_pos = {}
 
 -- Variable para identificadores de los sensores auxiliares
 auxSensors = {
@@ -290,11 +290,11 @@ function sysCall_init()
     -- Configuracion inicial para activar el temporizador
     startWaitTime = sim.getSimulationTime() -- Tiempo inicial
     
-    -- Identificadores del COM (0 = COM inicial)
+    -- Identificadores del COM (i = COM inicial)
     COM = sim.getObject(string.format('../COM'))
-    COM0 = sim.getObject(string.format('../COM_0'))
+    COM_i = sim.getObject(string.format('../COM_i'))
     -- Poisicion incial del COM
-    COM0_pos = calculateCOM()
+    COM_i_pos = calculateCOM()
     
     -- Preparar una ventana flotante para visualizar lo captado por la camara frontal
     frontCam = sim.getObject(string.format('../frontCamera'))
@@ -305,7 +305,7 @@ end
 function sysCall_actuation()
     print(activeLeg, currentPhase)
     -- Posicion inicial del COM
-    sim.setObjectPosition(COM0, COM0_pos, romerinPathRef)
+    sim.setObjectPosition(COM_i, COM_i_pos, romerinPathRef)
     
     -- Actualizar posicion del COM
     COM_pos = calculateCOM()
@@ -374,9 +374,9 @@ function sysCall_sensing()
     local gravity = sim.getArrayParameter(sim.arrayparam_gravity)
     local bodyPosition = sim.getObjectPosition(body, sim.handle_world)
     
-    local deltaX = COM_pos[1] - COM0_pos[1]
-    local deltaY = COM_pos[2] - COM0_pos[2]
-    local deltaZ = COM_pos[3] - COM0_pos[3]
+    local deltaX = COM_pos[1] - COM_i_pos[1]
+    local deltaY = COM_pos[2] - COM_i_pos[2]
+    local deltaZ = COM_pos[3] - COM_i_pos[3]
 
     -- Fuerza correctiva por desviacion del COM
     local correctionFactor = 2700
